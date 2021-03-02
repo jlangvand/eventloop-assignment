@@ -70,10 +70,7 @@ void tests() {
     std::cout << "Task F\n";
   }, 1000);
 
-  /* Wait for all threads to finish
-   */
-  eventLoop.join();
-  workerThreads.join();
+  // ~Workers does GC, we can safely exit the scope
 }
 
 int main(int argc, const char** argv) {
