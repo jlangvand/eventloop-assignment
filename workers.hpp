@@ -35,6 +35,7 @@ namespace jlworkers {
     Workers(int numThreads);
 
     void post(const std::function<void ()>&);
+    void post_timeout(const std::function<void ()>&, int timeout);
     void start();
     void stop();
   };

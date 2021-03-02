@@ -64,6 +64,14 @@ void stuff() {
   t.join();
 }
 
+void timeoutTest() {
+  jlworkers::Workers eventLoop;
+
+  eventLoop.start();
+  eventLoop.post_timeout([] { std::cout << "Hello\n"; }, 1000);
+  eventLoop.stop();
+}
+
 int main(int argc, const char** argv) {
 
   // Test workerthread
@@ -71,7 +79,10 @@ int main(int argc, const char** argv) {
 
   // Test eventloop
   workersTest(1);
-  
+
+  // Test timeout
+  std::cout << "Testing post_timeout\n";
+  timeoutTest();
   
   return 0;
 }

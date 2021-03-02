@@ -1,3 +1,4 @@
+#include <chrono>
 #include <condition_variable>
 #include <cstdlib>
 #include <functional>
@@ -23,11 +24,20 @@ namespace jlworkers {
   }
   
   void Workers::post(const std::function<void()>& f) {
-    //std::cout << "Adding task to queue, size before: " << m_queue.size();
     std::unique_lock<std::mutex> lock(m_runningMutex);
     this->m_queue.emplace_back(f);
     m_runningCondition.notify_all();
-    //std::cout << ", size after: " << m_queue.size() << "\n";
+  }
+
+  /* Crude implementation of timeout method.
+   */
+  void Workers::post_timeout(const std::function<void()>& f, int timeout) {
+    std::unique_lock<std::mutex> lock(m_runningMutex);
+    this->m_queue.emplace_back([f, timeout] {
+      std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
+      f();
+    });
+    m_runningCondition.notify_all();
   }
 
   void Workers::start() {
