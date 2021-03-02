@@ -21,6 +21,7 @@ namespace jlworkers {
   private:
     int m_maxThreadCount;
     std::atomic_int m_runningThreadCount;
+    std::atomic_int m_runningTimeoutThreadCount;
 
     std::atomic_bool m_running;
     std::condition_variable m_runningCondition;

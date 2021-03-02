@@ -13,12 +13,14 @@ namespace jlworkers {
   Workers::Workers() {
     this->m_running = false;
     this->m_runningThreadCount = 0;
+    this->m_runningTimeoutThreadCount = 0;
     this->m_maxThreadCount = 1;
   }
 
   Workers::Workers(int numThreads) {
     this->m_running = false;
     this->m_runningThreadCount = 0;
+    this->m_runningTimeoutThreadCount = 0;
     // Ensure the number of threads is sane
     this->m_maxThreadCount = numThreads > 0 ? numThreads : 1;
   }
@@ -32,12 +34,14 @@ namespace jlworkers {
   /* Crude implementation of timeout method.
    */
   void Workers::post_timeout(const std::function<void()>& f, int timeout) {
-    std::unique_lock<std::mutex> lock(m_runningMutex);
-    this->m_queue.emplace_back([f, timeout] {
+    m_runningTimeoutThreadCount++;
+    m_workers.emplace_back(std::thread([this, f, timeout] {
       std::this_thread::sleep_for(std::chrono::milliseconds(timeout));
-      f();
-    });
-    m_runningCondition.notify_all();
+      post(f);
+      std::unique_lock<std::mutex> lock(m_runningMutex);
+      m_runningTimeoutThreadCount--;
+      m_runningCondition.notify_all();
+    }));
   }
 
   void Workers::start() {
@@ -76,7 +80,7 @@ namespace jlworkers {
     /* Sohuld we wait for queue to clear, or do we want to stop adding tasks?
      * Let's do the former for now..
      */
-    while (!m_queue.empty()) {
+    while (!m_queue.empty() || m_runningTimeoutThreadCount) {
       std::unique_lock<std::mutex> lock(this->m_runningMutex);
       m_runningCondition.wait(lock);
     }
