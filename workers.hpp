@@ -5,7 +5,6 @@
 #include <condition_variable>
 #include <functional>
 #include <list>
-#include <map>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -14,10 +13,6 @@ namespace jlworkers {
   class Workers {
 
   private:
-    void m_workerFunc() {
-      
-    };
-    std::map<std::thread, std::atomic_bool> m_workers_status;
     int m_maxThreadCount;
     std::atomic_int m_runningThreadCount;
 
