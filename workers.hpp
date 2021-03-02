@@ -54,7 +54,7 @@ namespace jlworkers {
   public:
     Workers();
     Workers(int numThreads);
-    ~Workers() { if (m_running) join(); }
+    ~Workers() { stop(); }
 
     void post(const std::function<void ()>&);
     void post_timeout(const std::function<void ()>&, int timeout);

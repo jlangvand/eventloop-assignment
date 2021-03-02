@@ -17,34 +17,38 @@
 
 #include <chrono>
 #include <condition_variable>
-#include <cstdlib>
 #include <functional>
 #include <iostream>
 #include <mutex>
 #include <thread>
-#include <utility>
 
 #include "workers.hpp"
 
 namespace jlworkers {
+  /* Construct an event loop
+   */
   Workers::Workers() {
-    this->m_running = false;
-    this->m_runningThreadCount = 0;
-    this->m_runningTimeoutThreadCount = 0;
-    this->m_maxThreadCount = 1;
+    m_running = false;
+    m_runningThreadCount = 0;
+    m_runningTimeoutThreadCount = 0;
+    m_maxThreadCount = 1;
   }
 
+  /* Construct a concurent worker thread
+   */
   Workers::Workers(int numThreads) {
-    this->m_running = false;
-    this->m_runningThreadCount = 0;
-    this->m_runningTimeoutThreadCount = 0;
+    m_running = false;
+    m_runningThreadCount = 0;
+    m_runningTimeoutThreadCount = 0;
     // Ensure the number of threads is sane
-    this->m_maxThreadCount = numThreads > 0 ? numThreads : 1;
+    m_maxThreadCount = numThreads > 0 ? numThreads : 1;
   }
-  
+
+  /* Add a task to the queue
+   */
   void Workers::post(const std::function<void()>& f) {
     std::unique_lock<std::mutex> lock(m_runningMutex);
-    this->m_queue.emplace_back(f);
+    m_queue.emplace_back(f);
     m_runningCondition.notify_all();
   }
 
@@ -61,6 +65,8 @@ namespace jlworkers {
     }));
   }
 
+  /* Start the main thread
+   */
   void Workers::start() {
     std::cout << "Starting worker thread, " << m_maxThreadCount
               <<  " thread(s)\n";
@@ -93,23 +99,30 @@ namespace jlworkers {
     });
   }
 
+  /* Because the spec states there should be a stop() method
+   */
+  void Workers::stop() {
+    if (m_running)
+      join();
+  }
+
   void Workers::join() {
     /* Sohuld we wait for queue to clear, or do we want to stop adding tasks?
      * Let's do the former for now..
      */
     while (!m_queue.empty() || m_runningTimeoutThreadCount) {
-      std::unique_lock<std::mutex> lock(this->m_runningMutex);
+      std::unique_lock<std::mutex> lock(m_runningMutex);
       m_runningCondition.wait(lock);
     }
 
     // Scope this to avoid deadlock
     {
-      std::unique_lock<std::mutex> lock(this->m_runningMutex);
-      this->m_running = false;
+      std::unique_lock<std::mutex> lock(m_runningMutex);
+      m_running = false;
       m_runningCondition.notify_all();
     }
     
-    m_runnerThread.join();
+    m_runnerThread.join();  
   }
 }
 
