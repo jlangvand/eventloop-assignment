@@ -68,9 +68,6 @@ namespace jlworkers {
   /* Start the main thread
    */
   void Workers::start() {
-    std::cout << "Starting worker thread, " << m_maxThreadCount
-              <<  " thread(s)\n";
-
     m_running = true;
     m_runnerThread = std::thread([this] {
       while (m_running) {
