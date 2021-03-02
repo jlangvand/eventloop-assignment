@@ -1,88 +1,83 @@
+/*
+ * Copyright (C) 2021  Joakim Skogø Langvand
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <atomic>
+#include <bits/types/struct_itimerspec.h>
 #include <chrono>
 #include <condition_variable>
+#include <ctime>
 #include <iostream>
 #include <mutex>
 #include <ostream>
 #include <ratio>
+#include <sys/epoll.h>
+#include <sys/timerfd.h>
 #include <thread>
+#include <vector>
 
 #include "workers.hpp"
 
-void helloWorld() {
-  std::cout << "Task defined as regular (static) function\n";
-}
+/* Basic tests
+ */
+void tests() {
+  /* Default constructor uses one thread, acting as an event loop.
+   */
+  jlworkers::Workers eventLoop, workerThreads(4);
 
-void workersTest(int threads) {
-  jlworkers::Workers workerThread(threads);
-  std::mutex printMutex;
-
-  /*workerThread.post([]() {
-    std::cout << "Hello, World!\n";
-    });*/
-
-  workerThread.post(helloWorld);
-  
-  workerThread.start();
-
-  workerThread.post([]() {
-    // Let's delay this a bit
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    std::cout << "Anonymous function with 500ms sleep before print\n";
-  });
-
-  for (int i = 0; i < 10; i++)
-    workerThread.post([i] {
-      std::cout << "Task " << i
-                << ", thread id " << std::this_thread::get_id() <<"\n";
-    });
-
-  workerThread.join();
-}
-
-void stuff() {
-    std::atomic_bool wait(true);
-  std::mutex mtx;
-  std::condition_variable cv;
-
-  std::thread t([&wait, &mtx, &cv] {
-    //while (wait);
-    std::unique_lock<std::mutex> lock(mtx);
-    while (wait)
-      cv.wait(lock);
-    
-    std::cout << "Thread finished" << std::endl;
-  });
-  //  std::this_thread::sleep_for(std::chrono::seconds(1));
-  std::this_thread::sleep_for(std::chrono::seconds(1));
-  {
-    std::unique_lock<std::mutex> lock(mtx);
-    wait = false;
-  }
-  
-  cv.notify_all();
-  t.join();
-}
-
-void timeoutTest() {
-  jlworkers::Workers eventLoop;
-
+  /* Start both workers. They'll stand by and wait for tasks.
+   */
   eventLoop.start();
-  eventLoop.post_timeout([] { std::cout << "Hello\n"; }, 1000);
+  workerThreads.start();
+
+  /* Tasks A and B can run in any order
+   */
+  workerThreads.post([] {
+    std::cout << "Task A\n";
+  });
+  workerThreads.post([] {
+    std::cout << "Task B\n";
+  });
+
+  /* Task C shall always run before task D
+   */
+  eventLoop.post([] {
+    std::cout << "Task C\n";
+  });
+  eventLoop.post([] {
+    std::cout << "Task D\n";
+  });
+
+  /* Tasks E and F will start after a timeout given in milliseconds
+   */
+  eventLoop.post_timeout([] {
+    std::cout << "Task E\n";
+  }, 1500);
+  eventLoop.post_timeout([] {
+    std::cout << "Task F\n";
+  }, 1000);
+
+  /* Wait for all threads to finish
+   */
   eventLoop.join();
+  workerThreads.join();
 }
 
 int main(int argc, const char** argv) {
+  tests();  
 
-  // Test workerthread
-  workersTest(16);
-
-  // Test eventloop
-  workersTest(1);
-
-  // Test timeout
-  std::cout << "Testing post_timeout\n";
-  timeoutTest();
-  
   return 0;
 }
