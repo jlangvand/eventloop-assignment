@@ -15,19 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <atomic>
-#include <bits/types/struct_itimerspec.h>
-#include <chrono>
-#include <condition_variable>
-#include <ctime>
 #include <iostream>
-#include <mutex>
-#include <ostream>
-#include <ratio>
-#include <sys/epoll.h>
-#include <sys/timerfd.h>
-#include <thread>
-#include <vector>
 
 #include "workers.hpp"
 
