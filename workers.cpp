@@ -74,7 +74,6 @@ namespace jlworkers {
     m_running = true;
     m_runnerThread = std::thread([this] {
       while (m_running) {
-        //while (!m_queue.empty()) {
           while (m_runningThreadCount < m_maxThreadCount && !m_queue.empty()) {
             // Fetch next task in queue
             auto f = *m_queue.begin();
@@ -89,7 +88,6 @@ namespace jlworkers {
               m_runningCondition.notify_all();
             }));
           }
-          //}
 
         // Wait for any status updates
         std::unique_lock<std::mutex> lock(m_runningMutex);
