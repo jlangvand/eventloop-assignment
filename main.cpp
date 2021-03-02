@@ -22,6 +22,14 @@
 /* Basic tests
  */
 void tests() {
+  std::cout << "\nExample event loop and worker thread implementation.\n\n"
+            << "We'll run 6 tasks, A through F, where A and B runs in a\n"
+            << "worker thread, C through F in an event loop.\n\n"
+            << "Tasks E and F are started with an initial delay of 1500ms and\n"
+            << "1000ms, respectively.\n\n"
+            << "This means A and B can run at any time, in any order. C will\n"
+            << "run before D, E will be added to the queue 500ms after F\n\n";
+
   /* Default constructor uses one thread, acting as an event loop.
    */
   jlworkers::Workers eventLoop, workerThreads(4);
