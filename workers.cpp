@@ -36,8 +36,8 @@ namespace jlworkers {
     m_runnerThread = std::thread([this] {
       while (m_running) {
         std::cout << "Queue: " << m_queue.size() << "\n";
-        if (!m_queue.empty()) {
-          if (m_runningThreadCount < m_maxThreadCount) {
+        //while (!m_queue.empty()) {
+          while (m_runningThreadCount < m_maxThreadCount && !m_queue.empty()) {
             // Fetch next task in queue
             auto f = *m_queue.begin();
             // Keep track of running threads
@@ -51,7 +51,7 @@ namespace jlworkers {
               m_runningCondition.notify_all();
             }));
           }
-        }
+          //}
 
         // Wait for any status updates
         std::cout << "Create lock and wait for update\n";
@@ -68,6 +68,11 @@ namespace jlworkers {
      * Let's do the latter for now..
      */
     std::cout << "Stop runner thread; locking mutex\n";
+
+    while (!m_queue.empty()) {
+      std::unique_lock<std::mutex> lock(this->m_runningMutex);
+      m_runningCondition.wait(lock);
+    }
 
     // Scope this to avoid deadlock
     {

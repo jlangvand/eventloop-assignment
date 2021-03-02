@@ -15,6 +15,7 @@ auto helloWorld = [](int i) {
 
 void workersTest() {
   jlworkers::Workers workerThread(16);
+  std::mutex printMutex;
 
   workerThread.post([]() {
     std::cout << "Hello, World!\n";
@@ -34,7 +35,7 @@ void workersTest() {
                 << ", thread id " << std::this_thread::get_id() <<"\n";
     });
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   workerThread.stop();
 }
