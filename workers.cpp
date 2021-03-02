@@ -72,7 +72,7 @@ namespace jlworkers {
     });
   }
 
-  void Workers::stop() {
+  void Workers::join() {
     /* Sohuld we wait for queue to clear, or do we want to stop adding tasks?
      * Let's do the former for now..
      */

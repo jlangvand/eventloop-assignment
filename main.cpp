@@ -37,7 +37,7 @@ void workersTest(int threads) {
                 << ", thread id " << std::this_thread::get_id() <<"\n";
     });
 
-  workerThread.stop();
+  workerThread.join();
 }
 
 void stuff() {
@@ -69,7 +69,7 @@ void timeoutTest() {
 
   eventLoop.start();
   eventLoop.post_timeout([] { std::cout << "Hello\n"; }, 1000);
-  eventLoop.stop();
+  eventLoop.join();
 }
 
 int main(int argc, const char** argv) {
