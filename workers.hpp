@@ -49,6 +49,7 @@ namespace jlworkers {
 
     std::thread m_runnerThread;
 
+    void join();
     void stop();
 
   public:
@@ -59,7 +60,6 @@ namespace jlworkers {
     void post(const std::function<void ()>&);
     void post_timeout(const std::function<void ()>&, int timeout);
     void start();
-    void join();
   };
 }
 
