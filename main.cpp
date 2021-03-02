@@ -9,24 +9,26 @@
 
 #include "workers.hpp"
 
-auto helloWorld = [](int i) {
-  std::cout << "Task " << i << "\n";
- };
+void helloWorld() {
+  std::cout << "Task defined as regular (static) function\n";
+}
 
-void workersTest() {
-  jlworkers::Workers workerThread(16);
+void workersTest(int threads) {
+  jlworkers::Workers workerThread(threads);
   std::mutex printMutex;
 
-  workerThread.post([]() {
+  /*workerThread.post([]() {
     std::cout << "Hello, World!\n";
-  });
+    });*/
 
+  workerThread.post(helloWorld);
+  
   workerThread.start();
 
   workerThread.post([]() {
     // Let's delay this a bit
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    std::cout << "Hello again, World!\n";
+    std::cout << "Anonymous function with 500ms sleep before print\n";
   });
 
   for (int i = 0; i < 10; i++)
@@ -34,8 +36,6 @@ void workersTest() {
       std::cout << "Task " << i
                 << ", thread id " << std::this_thread::get_id() <<"\n";
     });
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
   workerThread.stop();
 }
@@ -66,7 +66,12 @@ void stuff() {
 
 int main(int argc, const char** argv) {
 
-  workersTest();
+  // Test workerthread
+  workersTest(16);
+
+  // Test eventloop
+  workersTest(1);
+  
   
   return 0;
 }
