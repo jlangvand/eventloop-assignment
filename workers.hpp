@@ -10,6 +10,12 @@
 #include <vector>
 
 namespace jlworkers {
+  /* Worker thread/event loop class
+
+     The default constructor will create an instance utilising a single thread
+     for each task, making it act as an event loop. You can, however, specify
+     any number of threads to run tasks concurrently.
+   */
   class Workers {
 
   private:
